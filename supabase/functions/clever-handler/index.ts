@@ -25,9 +25,41 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = await req.json();
+    const rawBody = await req.text();
 
-    console.log("clever-handler: BODY PARSED");
+console.log(
+  "clever-handler: RAW BODY LENGTH:",
+  rawBody.length,
+);
+
+let body: {
+  name?: string;
+  age?: number;
+  phone?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  reasonForVisit?: string;
+};
+
+try {
+  body = JSON.parse(rawBody);
+
+  console.log("clever-handler: BODY PARSED");
+} catch (error) {
+  console.error("clever-handler: JSON PARSE ERROR:", error);
+
+  return new Response(
+    JSON.stringify({
+      error: "Invalid JSON body",
+    }),
+    {
+      status: 400,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
 
     const {
       name,
