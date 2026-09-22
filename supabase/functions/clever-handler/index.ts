@@ -9,15 +9,32 @@ console.log("clever-handler: START");
 
 Deno.serve(async (req) => {
   console.log("clever-handler: REQUEST RECEIVED");
+  console.log("clever-handler: METHOD =", req.method);
 
   try {
-    if (req.method !== "POST") {
+    const rawBody = await req.text();
+
+    console.log(
+      "clever-handler: RAW BODY LENGTH =",
+      rawBody.length,
+    );
+
+    let body;
+
+    try {
+      body = JSON.parse(rawBody);
+    } catch (error) {
+      console.error(
+        "clever-handler: JSON PARSE ERROR:",
+        error,
+      );
+
       return new Response(
         JSON.stringify({
-          error: "Method not allowed",
+          error: "Invalid JSON body",
         }),
         {
-          status: 405,
+          status: 400,
           headers: {
             "Content-Type": "application/json",
           },
@@ -25,32 +42,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    const rawBody = await req.text();
+    console.log("clever-handler: BODY PARSED");
+   const rawBody = await req.text();
 
-console.log(
-  "clever-handler: RAW BODY LENGTH:",
-  rawBody.length,
-);
+console.log("clever-handler: RAW BODY:", rawBody);
 
-let body: {
-  name?: string;
-  age?: number;
-  phone?: string;
-  preferredDate?: string;
-  preferredTime?: string;
-  reasonForVisit?: string;
-};
+let body;
 
 try {
   body = JSON.parse(rawBody);
-
-  console.log("clever-handler: BODY PARSED");
 } catch (error) {
   console.error("clever-handler: JSON PARSE ERROR:", error);
 
   return new Response(
     JSON.stringify({
       error: "Invalid JSON body",
+      rawBody,
     }),
     {
       status: 400,
@@ -60,6 +67,8 @@ try {
     },
   );
 }
+
+console.log("clever-handler: BODY PARSED:", body);
 
     const {
       name,
